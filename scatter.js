@@ -55,31 +55,37 @@
 
 		this.span = this.end.x - this.start.x;
 		
-		this.coefficients = [];
-		for(let d_left = 0; d_left <= this.start.distance; ++d_left) {
-			this.coefficients[d_left] = [];
-			for(let d_right = 0; d_right <= this.end.distance; ++d_right) {
-				const matrix = [], vector = [];
-				const dimension = d_left + d_right + 2;
-				for(let i = 0; i <= d_left; ++i) {
-					matrix.push(derivativePolynomialAt(dimension, i, this.start.x));
-					vector.push(this.start.derivative(i));
-				}
-				for(let i = 0; i <= d_right; ++i) {
-					matrix.push(derivativePolynomialAt(dimension, i, this.end.x));
-					vector.push(this.end.derivative(i));
-				}
-				const coefficient = math.multiply(math.inv(matrix), vector);
-				this.coefficients[d_left][d_right] = coefficient;
-			}
-		}
+		this.coefficients_buffer = [];
 	}
 	Interval.prototype = {
 		contains(x) { return x >= this.start.x && x <= this.end.x; },
+		computeCoefficient(d_left, d_right) {
+			const matrix = [], vector = [];
+			const dimension = d_left + d_right + 2;
+			for(let i = 0; i <= d_left; ++i) {
+				matrix.push(derivativePolynomialAt(dimension, i, this.start.x));
+				vector.push(this.start.derivative(i));
+			}
+			for(let i = 0; i <= d_right; ++i) {
+				matrix.push(derivativePolynomialAt(dimension, i, this.end.x));
+				vector.push(this.end.derivative(i));
+			}
+			const coefficient = math.multiply(math.inv(matrix), vector);
+			this.coefficients_buffer[d_left][d_right] = coefficient;
+		},
+		coefficients(d_left, d_right) {
+			if(!(d_left in this.coefficients_buffer)) {
+				this.coefficients_buffer[d_left] = [];
+				this.computeCoefficient(d_left, d_right);
+			}
+			if(!(d_right in this.coefficients_buffer[d_left]))
+				this.computeCoefficient(d_left, d_right);
+			return this.coefficients_buffer[d_left][d_right];
+		},
 		tween(x, rank) {
 			const r_left = Math.min(this.start.distance, rank);
 			const r_right = Math.min(this.end.distance, rank);
-			const coefficient = this.coefficients[r_left][r_right];
+			const coefficient = this.coefficients(r_left, r_right);
 			return computePolynomial(coefficient, x);
 		},
 	};
@@ -116,9 +122,7 @@
 		tween(x, rank) {
 			if(x < this.xmin || x > this.xmax)
 				return null;
-			const interval = this.intervals.find(
-				interval => interval.contains(x)
-			);
+			const interval = this.intervals.find(i => i.contains(x));
 			return interval.tween(x, rank);
 		},
 	};
