@@ -23,19 +23,22 @@
 		},
 	};
 
-	function fact_down(start, count) {
+	const factDown_buffer = [[1]];
+	function factDown(start, count) {
+		if(start in factDown_buffer)
+			return factDown_buffer[start][count];
+		const row = factDown_buffer[start] = [1];
 		let product = 1;
-		while(count--)
-			product *= start--;
-		return product;
+		while(start)
+			row.push(product *= start--);
+		return row[count];
 	}
 	function derivativePolynomialAt(dimension, d_rank, x) {
 		const poly = Array(dimension).fill(0);
 		for(let i = 0, power = 1; i < dimension - d_rank; ++i, power *= x)
-			poly[i] = fact_down(i + d_rank, d_rank) * power;
+			poly[i + d_rank] = factDown(i + d_rank, d_rank) * power;
 		return poly;
 	}
-	console.table(Array(8).fill(0).map((_, i) => derivativePolynomialAt(8, i, 1)));
 	function computePolynomial(coefficient, x) {
 		let sum = 0, power = 1;
 		for(let i = 0; i < coefficient.length; ++i) {
