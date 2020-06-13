@@ -9,18 +9,18 @@ const make_scatter = (f, dx, xmin, xmax) => new Scatter([...function *(){
 	return;
 }()], true);
 
-const C = make_scatter(x => Math.random(x), .1, 0, 5);
+const C = make_scatter(x => Math.random(x), .1, 0, 4);
 
 const cvs = document.getElementById('cvs'), ctx = cvs.getContext('2d');
 const dx = 1e-3;
-const [w, h] = [cvs.width, cvs.height] = [800, 400];
+const [w, h] = [cvs.width, cvs.height] = [800, 200];
 const [wm, hm] = [10, 50];	// margins against overflow
 const scr = (x, y, s) => [
 	(w - wm * 2) * (x - s.xmin) / s.xspan + wm,
 	(h - hm * 2) * (1 - (y - s.ymin) / s.yspan) + hm
 ];
-const colors = ['red', 'green', 'blue', 'purple'];
-for(let rank = 0; rank < 4; ++rank) {
+const colors = ['red', 'green', 'blue'];
+for(let rank = 0; rank < 3; ++rank) {
 	ctx.beginPath();
 	ctx.moveTo(...scr(0, C.tween(C.xmin, rank), C));
 	for(let x = dx; x <= C.xmax; x += dx)
